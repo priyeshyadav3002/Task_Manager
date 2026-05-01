@@ -1,5 +1,5 @@
-
-import { API_BASE_URL } from '../config';import { useState } from 'react';
+import { API_BASE_URL } from '../config';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { User, Mail, Lock, ShieldCheck, UserPlus, ArrowRight } from 'lucide-react';
@@ -55,16 +55,15 @@ const Signup = () => {
         toast.error(data.message || 'Registration failed', { id: toastId });
       }
     } catch (error) {
-      toast.error('Network error. Is the backend running on port 5001?', { id: toastId });
+      // Updated error message to be relevant for live cloud deployment
+      toast.error('Network error. Ensure your backend is live on Render', { id: toastId });
     }
   };
 
   return (
-    /* Changed bg-slate-950 to Bright Human Gradient */
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-rose-50 px-4 py-12">
       <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="w-full max-w-md">
         <div className="flex flex-col items-center mb-10">
-          {/* Changed emerald colors to Warm Rose for the icon */}
           <div className="w-16 h-16 bg-rose-500 rounded-[1.5rem] flex items-center justify-center mb-4 shadow-xl shadow-rose-200">
             <UserPlus className="text-white w-8 h-8" />
           </div>
@@ -72,12 +71,10 @@ const Signup = () => {
           <p className="text-slate-400 mt-2 font-medium">Join us and start organizing.</p>
         </div>
 
-        {/* Changed bg-slate-900/50 to Pure White Organic Card */}
         <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] border border-white p-10 shadow-2xl shadow-rose-200/40">
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-rose-300" />
-              {/* Changed inputs to bright background and rose focus rings */}
               <input type="text" required className="w-full bg-slate-50 border border-slate-100 text-slate-800 rounded-2xl py-3.5 pl-12 pr-4 focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 outline-none transition-all" placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 
@@ -104,7 +101,6 @@ const Signup = () => {
               </select>
             </div>
 
-            {/* Changed button to Vibrant Rose */}
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} type="submit" className="w-full bg-rose-500 hover:bg-rose-600 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-rose-500/30 text-lg transition-all mt-4">
               Get Started <ArrowRight className="w-5 h-5" />
             </motion.button>

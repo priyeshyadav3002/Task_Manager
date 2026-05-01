@@ -15,9 +15,11 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetch(`${API_BASE_URL}/api/tasks`)
+      // Corrected endpoint to fetch users, not tasks
+      fetch(`${API_BASE_URL}/api/users`)
         .then(res => res.json())
-        .then(data => setUsers(data ?? []));
+        .then(data => setUsers(data ?? []))
+        .catch(err => console.error("Failed to load users:", err));
     }
   }, [isOpen]);
 
@@ -31,8 +33,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
       return;
     }
 
-    // Ensure we are using the MongoDB _id for the creator
-    // This handles cases where userId might be passed as an object or a string
     const finalCreatorId = typeof userId === 'object' ? userId?._id : userId;
 
     const payload = {
@@ -42,7 +42,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
       dueDate,
       status: 'Pending',
       creatorId: finalCreatorId, 
-      assignedTo: assignedTo // This will now be the MongoDB _id from the select
+      assignedTo: assignedTo 
     };
 
     try {
@@ -108,7 +108,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
               onChange={e => setAssignedTo(e.target.value)}
             >
               <option value="">Select a team member...</option>
-              {/* CRITICAL FIX: Changed u.id to u._id */}
               {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
             </select>
           </div>

@@ -9,10 +9,11 @@ const Team = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
-    // Fetches live users from the MongoDB-connected backend
+    // Fetches live users from the MongoDB-connected backend on Render
     fetch(`${API_BASE_URL}/api/users`)
       .then(res => res.json())
-      .then(data => setMembers(data ?? []));
+      .then(data => setMembers(data ?? []))
+      .catch(err => console.error("Team fetch failed:", err)); // Added error handling
   }, []);
 
   return (
@@ -30,7 +31,7 @@ const Team = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {members.map((member, i) => (
             <motion.div
-              /* Updated key to use MongoDB _id */
+              /* Uses MongoDB _id for stable React keys */
               key={member._id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}

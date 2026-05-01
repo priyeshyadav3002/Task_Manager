@@ -10,7 +10,7 @@ const Tasks = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
-    // Priority: Use MongoDB _id
+    // Priority: Use MongoDB _id for cloud database compatibility
     const userId = user?._id || user?.id; 
 
     if (userId) {
@@ -27,7 +27,8 @@ const Tasks = () => {
                    String(taskCreatorId) === String(userId);
           });
           setList(filtered);
-        });
+        })
+        .catch(err => console.error("Repository fetch failed:", err));
     }
   }, [user?._id, user?.id]);
 
@@ -64,7 +65,6 @@ const Tasks = () => {
                       {t.priority || 'Normal'} Priority
                     </span>
                     <span className="text-slate-200">|</span>
-                    {/* NEW: Display who the task is for using the populated name */}
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-tighter">
                       Assignee: {t.assignedTo?.name || 'Unassigned'}
                     </span>

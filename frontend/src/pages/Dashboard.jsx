@@ -14,7 +14,7 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
 
-  // Use MongoDB _id primarily
+  // Using MongoDB _id primarily for cloud compatibility
   const currentUserId = user?._id || user?.id;
 
   const fetchTasks = async () => {
@@ -22,28 +22,36 @@ const Dashboard = () => {
       const response = await fetch(`${API_BASE_URL}/api/tasks`);
       const data = await response.json();
       setTasks(data ?? []);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Fetch Tasks Error:", e); 
+    }
   };
 
-  useEffect(() => { fetchTasks(); }, []);
+  useEffect(() => { 
+    fetchTasks(); 
+  }, []);
 
   const handleUpdateStatus = async (taskId, newStatus) => {
-    const res = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus, userId: currentUserId }),
-    });
-    if (res.ok) { fetchTasks(); toast.success(`Task ${newStatus}`); }
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus, userId: currentUserId }),
+      });
+      if (res.ok) { 
+        fetchTasks(); 
+        toast.success(`Task ${newStatus}`); 
+      }
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
   };
 
   const displayTasks = (tasks ?? []).filter(t => {
     if (user?.role === 'Admin') return true; 
 
-    // CRITICAL FIX: 
-    // Since assignedTo is POPULATED, t.assignedTo is an object { _id: "...", name: "..." }
-    // We must check for ._id first, then fallback to the string.
+    // Handling populated objects from MongoDB
     const taskAssignedId = t.assignedTo?._id || t.assignedTo;
-    
     return String(taskAssignedId) === String(currentUserId);
   });
 
