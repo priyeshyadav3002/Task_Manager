@@ -2,7 +2,7 @@
 A professional, full-stack Task Management System designed for high-performance teams. This application allows Project Managers (Admins) to assign tasks, set priorities, and track progress in real-time, while providing Members with a streamlined interface to manage their daily contributions.
 
 🔗 Live Demo
-Frontend: ask-manager-five-delta-94.vercel.app
+Frontend: https://task-manager-five-delta-94.vercel.app/team
 
 
 Backend API: https://task-manager-bk86.onrender.com
