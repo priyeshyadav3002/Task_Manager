@@ -1,0 +1,81 @@
+{
+  "users": [
+    {
+      "id": 1777579660034,
+      "name": "Priyesh Yadav",
+      "email": "priyeshyadav03@gmail.com",
+      "password": "Priyesh@123",
+      "role": "Admin"
+    },
+    {
+      "id": 1777582550787,
+      "name": "Priyesh Yadav ",
+      "email": "2k22.csaiml.2212995@gmail.com",
+      "password": "Priyesh@123",
+      "role": "Member"
+    },
+    {
+      "id": 1777587480486,
+      "name": "rajveer yadav",
+      "email": "rajveeryadav03@gmail.com",
+      "password": "Priyesh@123",
+      "role": "Member"
+    },
+    {
+      "id": 1777587659637,
+      "name": "Sakshi Chauhan",
+      "email": "priyeshyadav390@gmail.com",
+      "password": "Priyesh@123",
+      "role": "Member"
+    },
+    {
+      "id": 1777589671679,
+      "name": "priyesh yadav",
+      "email": "yadavpriyesh390@gmail.com",
+      "password": "priyeshyadav",
+      "role": "Admin"
+    },
+    {
+      "id": 1777590730573,
+      "name": "Prajjwal",
+      "email": "prajjwal17@gmail.com",
+      "password": "Prajjwal@123",
+      "role": "Member"
+    }
+  ],
+  "tasks": [
+    {
+      "id": 1777593183754,
+      "title": "Prajjwal 1",
+      "description": "wedeifl",
+      "priority": "High",
+      "dueDate": "2026-04-30",
+      "status": "Completed",
+      "creatorId": 1777579660034,
+      "assignedTo": "1777590730573",
+      "acceptedBy": 1777590730573
+    },
+    {
+      "id": 1777593426921,
+      "title": "Prajjwal 2",
+      "description": "efnefnl",
+      "priority": "High",
+      "dueDate": "2026-04-30",
+      "status": "Completed",
+      "creatorId": 1777579660034,
+      "assignedTo": "1777590730573",
+      "acceptedBy": 1777590730573
+    },
+    {
+      "id": 1777593617212,
+      "title": "efnenwlf",
+      "description": "enfdlknefnk",
+      "priority": "High",
+      "dueDate": "2026-05-01",
+      "status": "Pending",
+      "creatorId": 1777579660034,
+      "assignedTo": "1777590730573",
+      "acceptedBy": null
+    }
+  ]
+}
