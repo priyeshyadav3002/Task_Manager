@@ -1,119 +1,161 @@
+require('dotenv').config(); // Absolute first line to load environment variables
 const express = require('express');
-const fs = require('fs');
-const path = require('path');
+const mongoose = require('mongoose');
 const cors = require('cors');
+const bcrypt = require('bcryptjs'); // For secure "Human Pattern" password hashing
+const jwt = require('jsonwebtoken'); // For professional session management
+
+// --- 📂 MODEL IMPORTS ---
+// Ensure these files exist in your /models folder
+const User = require('./models/User');
+const Task = require('./models/Task');
 
 const app = express();
-const PORT = 5001;
-const DB_PATH = path.join(__dirname, 'database.json');
+const PORT = process.env.PORT || 5001;
 
+// --- 🛠️ MIDDLEWARE ---
 app.use(cors());
-app.use(express.json());
+app.use(express.json()); // Allows server to parse JSON data from the frontend
 
-// Initialize Database
-if (!fs.existsSync(DB_PATH)) {
-    fs.writeFileSync(DB_PATH, JSON.stringify({ users: [], tasks: [] }, null, 2));
-}
+// --- 🌐 DATABASE CONNECTION ---
+console.log("Attempting to connect to:", process.env.MONGODB_URI ? "URI found in .env" : "URI is MISSING");
 
-// --- AUTH ROUTES ---
-app.post('/api/auth/register', (req, res) => {
-    const { name, email, password, role } = req.body;
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    if (db.users.find(u => u.email === email)) return res.status(400).json({ message: "User exists" });
-    
-    const newUser = { id: Date.now(), name, email, password, role: role || 'Member' };
-    db.users.push(newUser);
-    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
-    res.status(201).json({ message: "User created" });
-});
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ Human-Centric Database Connected!"))
+  .catch((err) => {
+    console.error("❌ Database Connection Error:", err.message);
+  });
 
-app.post('/api/auth/login', (req, res) => {
-    const { email, password } = req.body;
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    const user = db.users.find(u => u.email === email && u.password === password);
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
-    
-    const { password: _, ...safeUser } = user;
-    res.json({ user: safeUser, token: "mock-jwt-token" });
-});
+// --- 🔐 AUTHENTICATION ROUTES ---
 
-// --- USER ROUTES ---
-app.get('/api/users', (req, res) => {
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    const safeUsers = db.users.map(({ password, ...u }) => u);
-    res.json(safeUsers);
-});
-
-app.put('/api/users/:id', (req, res) => {
-    const { id } = req.params;
-    const { name, role } = req.body;
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    const idx = db.users.findIndex(u => u.id === parseInt(id));
-    if (idx !== -1) {
-        db.users[idx] = { ...db.users[idx], name, role };
-        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
-        const { password, ...updatedUser } = db.users[idx];
-        res.json(updatedUser);
-    } else res.status(404).send();
-});
-
-// --- TASK ROUTES ---
-app.get('/api/tasks', (req, res) => {
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    res.json(db.tasks || []);
-});
-
-app.post('/api/tasks', (req, res) => {
-    const { title, description, priority, dueDate, creatorId, assignedTo } = req.body;
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    const newTask = { 
-        id: Date.now(), title, description, priority, dueDate, 
-        status: 'Pending', creatorId, assignedTo, acceptedBy: null 
-    };
-    db.tasks.push(newTask);
-    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
-    res.status(201).json(newTask);
-});
-
-app.patch('/api/tasks/:id/status', (req, res) => {
-    const { id } = req.params;
-    const { status, userId } = req.body;
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    const idx = db.tasks.findIndex(t => t.id === parseInt(id));
-    if (idx !== -1) {
-        db.tasks[idx].status = status;
-        if (status === 'Accepted') db.tasks[idx].acceptedBy = userId;
-        fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
-        res.json(db.tasks[idx]);
-    } else res.status(404).send();
-});
-
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-app.get('/api/users', (req, res) => {
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    
-    const usersWithCounts = (db.users ?? []).map(user => {
-        const { password, ...safeUser } = user;
+// Registration: Hashes password before saving to the cloud
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { name, email, password, role } = req.body;
         
-        // BUG FIX: Force string comparison to count tasks correctly
-        const taskCount = (db.tasks ?? []).filter(task => 
-            String(task.assignedTo) === String(user.id)
-        ).length;
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).json({ message: "User already exists" });
 
-        return { ...safeUser, taskCount };
-    });
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUser = new User({ 
+            name, 
+            email, 
+            password: hashedPassword, 
+            role: role || 'Member' 
+        });
 
-    res.json(usersWithCounts);
+        await newUser.save();
+        res.status(201).json({ message: "User created successfully" });
+    } catch (error) {
+        console.error("Registration Error:", error);
+        res.status(500).json({ message: "Error during registration" });
+    }
 });
-app.get('/api/users', (req, res) => {
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    const usersWithCounts = (db.users ?? []).map(user => {
-        const { password, ...safeUser } = user;
-        // Strict ID check to count tasks for each member
-        const taskCount = (db.tasks ?? []).filter(task => 
-            String(task.assignedTo) === String(user.id)
-        ).length;
-        return { ...safeUser, taskCount };
-    });
-    res.json(usersWithCounts);
+
+// Login: Compares hashed password and issues a JWT token
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        
+        if (!user) return res.status(401).json({ message: "Invalid credentials" });
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+        const token = jwt.sign(
+            { id: user._id, role: user.role }, 
+            process.env.JWT_SECRET, 
+            { expiresIn: '1d' }
+        );
+
+        res.json({ 
+            token, 
+            user: { _id: user._id, name: user.name, email: user.email, role: user.role } 
+        });
+    } catch (error) {
+        console.error("Login Error:", error);
+        res.status(500).json({ message: "Error during login" });
+    }
+});
+
+// --- 👥 USER & TEAM ROUTES ---
+
+// Fetches all users and counts their active tasks for the Team page
+app.get('/api/users', async (req, res) => {
+    try {
+        const users = await User.find().select('-password');
+        
+        const usersWithCounts = await Promise.all(users.map(async (user) => {
+            const taskCount = await Task.countDocuments({ assignedTo: user._id });
+            return { ...user._doc, taskCount };
+        }));
+
+        res.json(usersWithCounts);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching users" });
+    }
+});
+
+// --- 📝 TASK MANAGEMENT ROUTES ---
+
+// Fetch tasks with populated user names
+app.get('/api/tasks', async (req, res) => {
+    try {
+        const tasks = await Task.find()
+            .populate('creatorId', 'name')
+            .populate('assignedTo', 'name');
+        res.json(tasks);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching tasks" });
+    }
+});
+
+// Create task with detailed error logging for debugging
+app.post('/api/tasks', async (req, res) => {
+    try {
+        console.log("📥 Incoming Task Payload:", req.body);
+        const { title, description, priority, dueDate, creatorId, assignedTo } = req.body;
+
+        const newTask = new Task({
+            title, 
+            description, 
+            priority, 
+            dueDate, 
+            creatorId, 
+            assignedTo,
+            status: 'Pending'
+        });
+
+        const savedTask = await newTask.save();
+        console.log("✅ Task Saved to Cloud");
+        res.status(201).json(savedTask);
+    } catch (error) {
+        console.error("❌ Mongoose Task Validation Error:", error.message);
+        res.status(400).json({ 
+            message: "Validation Failed", 
+            detail: error.message,
+            receivedData: req.body 
+        });
+    }
+});
+
+// Update task status (e.g., Pending -> Accepted)
+app.patch('/api/tasks/:id/status', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const updatedTask = await Task.findByIdAndUpdate(
+            req.params.id, 
+            { status }, 
+            { new: true }
+        );
+        res.json(updatedTask);
+    } catch (error) {
+        res.status(400).json({ message: "Error updating status", error: error.message });
+    }
+});
+
+// --- 🚀 SERVER START ---
+app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });

@@ -9,20 +9,31 @@ const Tasks = () => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   useEffect(() => {
-    fetch('http://localhost:5001/api/tasks').then(res => res.json()).then(data => {
-      const filtered = (data ?? []).filter(t => 
-        String(t.assignedTo) === String(user?.id) || t.creatorId === user?.id
-      );
-      setList(filtered);
-    });
-  }, [user?.id]);
+    // Priority: Use MongoDB _id
+    const userId = user?._id || user?.id; 
+
+    if (userId) {
+      fetch('http://localhost:5001/api/tasks')
+        .then(res => res.json())
+        .then(data => {
+          // CLOUD LOGIC: Handle populated objects in the filter
+          const filtered = (data ?? []).filter(t => {
+            // Extract the ID from the populated object or use the raw string
+            const taskAssignedId = t.assignedTo?._id || t.assignedTo;
+            const taskCreatorId = t.creatorId?._id || t.creatorId;
+
+            return String(taskAssignedId) === String(userId) || 
+                   String(taskCreatorId) === String(userId);
+          });
+          setList(filtered);
+        });
+    }
+  }, [user?._id, user?.id]);
 
   return (
-    /* Changed bg-slate-950 to Bright Human Pattern white */
     <div className="min-h-screen bg-[#FDFCFB] flex font-sans text-slate-900">
       <Sidebar isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       
-      {/* Main content with dynamic margin and bright typography */}
       <main className={`flex-1 transition-all duration-300 p-8 lg:p-12 ${isExpanded ? 'ml-64' : 'ml-20'}`}>
         <header className="mb-12">
           <h1 className="text-4xl font-black text-slate-800 flex items-center gap-4 tracking-tight">
@@ -33,9 +44,8 @@ const Tasks = () => {
 
         <div className="space-y-6">
           {list.length > 0 ? list.map(t => (
-            /* Changed bg-slate-900 to Pure White organic cards with rose-tinted shadows */
             <div 
-              key={t.id} 
+              key={t._id} 
               className="p-8 bg-white border border-slate-100 rounded-[2.5rem] flex justify-between items-center hover:shadow-2xl hover:shadow-rose-200/20 transition-all group"
             >
               <div className="flex items-center gap-6">
@@ -51,6 +61,11 @@ const Tasks = () => {
                     <span className="text-slate-200">|</span>
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-tighter">
                       {t.priority || 'Normal'} Priority
+                    </span>
+                    <span className="text-slate-200">|</span>
+                    {/* NEW: Display who the task is for using the populated name */}
+                    <span className="text-slate-400 text-xs font-bold uppercase tracking-tighter">
+                      Assignee: {t.assignedTo?.name || 'Unassigned'}
                     </span>
                   </div>
                 </div>

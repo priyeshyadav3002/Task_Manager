@@ -6,7 +6,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
   const today = new Date().toISOString().split('T')[0];
   const [users, setUsers] = useState([]);
   
-  // Flat states to prevent object merging bugs
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('Medium');
@@ -31,35 +30,44 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
       return;
     }
 
+    // Ensure we are using the MongoDB _id for the creator
+    // This handles cases where userId might be passed as an object or a string
+    const finalCreatorId = typeof userId === 'object' ? userId?._id : userId;
+
     const payload = {
       title,
       description,
       priority,
       dueDate,
       status: 'Pending',
-      creatorId: userId,
-      assignedTo: String(assignedTo) // CRITICAL: This links the task to the user
+      creatorId: finalCreatorId, 
+      assignedTo: assignedTo // This will now be the MongoDB _id from the select
     };
 
-    const res = await fetch('http://localhost:5001/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const res = await fetch('http://localhost:5001/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
 
-    if (res.ok) {
-      toast.success("Task Assigned!");
-      onTaskAdded();
-      onClose();
-      // Reset fields
-      setTitle(''); setDescription(''); setAssignedTo('');
+      if (res.ok) {
+        toast.success("Task Assigned!");
+        onTaskAdded();
+        onClose();
+        setTitle(''); setDescription(''); setAssignedTo('');
+      } else {
+        const errorData = await res.json();
+        console.error("Backend Error:", errorData);
+        toast.error(errorData.detail || "Failed to deploy task");
+      }
+    } catch (err) {
+      toast.error("Server connection failed");
     }
   };
 
   return (
-    /* Changed bg-black/80 to a softer light-tinted overlay with heavy blur */
     <div className="fixed inset-0 z-[70] bg-rose-900/10 flex items-center justify-center p-4 backdrop-blur-md">
-      {/* Changed bg-slate-900 to Pure White and updated borders to Rose-100 */}
       <div className="bg-white border border-rose-100 w-full max-w-md p-10 rounded-[3rem] shadow-2xl shadow-rose-200/40">
         <header className="flex justify-between mb-8">
           <h2 className="text-2xl font-black text-slate-800 tracking-tight">New Assignment</h2>
@@ -69,7 +77,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Inputs: Swapped bg-slate-950 for bg-slate-50 and indigo focus for rose */}
           <div className="space-y-1">
             <label className="text-[10px] font-black text-rose-400 uppercase ml-2 tracking-widest">Task Title</label>
             <input 
@@ -100,7 +107,8 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
               onChange={e => setAssignedTo(e.target.value)}
             >
               <option value="">Select a team member...</option>
-              {users.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              {/* CRITICAL FIX: Changed u.id to u._id */}
+              {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
             </select>
           </div>
 
@@ -130,7 +138,6 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
              </div>
           </div>
 
-          {/* Button: Swapped indigo for Vibrant Rose with heavy shadow */}
           <button 
             type="submit" 
             className="w-full bg-rose-500 hover:bg-rose-600 py-4 rounded-2xl text-white font-black text-lg shadow-lg shadow-rose-500/30 transition-all active:scale-95 mt-4"

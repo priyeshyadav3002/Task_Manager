@@ -13,6 +13,9 @@ const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showNotif, setShowNotif] = useState(false);
 
+  // Use MongoDB _id primarily
+  const currentUserId = user?._id || user?.id;
+
   const fetchTasks = async () => {
     try {
       const response = await fetch('http://localhost:5001/api/tasks');
@@ -27,38 +30,40 @@ const Dashboard = () => {
     const res = await fetch(`http://localhost:5001/api/tasks/${taskId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus, userId: user.id }),
+      body: JSON.stringify({ status: newStatus, userId: currentUserId }),
     });
     if (res.ok) { fetchTasks(); toast.success(`Task ${newStatus}`); }
   };
 
   const displayTasks = (tasks ?? []).filter(t => {
     if (user?.role === 'Admin') return true; 
-    return String(t.assignedTo) === String(user?.id);
+
+    // CRITICAL FIX: 
+    // Since assignedTo is POPULATED, t.assignedTo is an object { _id: "...", name: "..." }
+    // We must check for ._id first, then fallback to the string.
+    const taskAssignedId = t.assignedTo?._id || t.assignedTo;
+    
+    return String(taskAssignedId) === String(currentUserId);
   });
 
   const activeTasks = displayTasks.filter(t => t.status !== 'Completed');
 
-  // Human Pattern Theme Logic
   const themeText = user?.role === 'Admin' ? 'text-rose-500' : 'text-teal-600';
   const themeBtn = user?.role === 'Admin' ? 'bg-rose-500 hover:bg-rose-600' : 'bg-teal-500 hover:bg-teal-600';
   const themeBg = user?.role === 'Admin' ? 'bg-rose-50' : 'bg-teal-50';
 
   return (
-    /* Changed bg-slate-950 to a warm, bright Human Pattern white */
     <div className="min-h-screen bg-[#FDFCFB] flex font-sans text-slate-900">
       <Sidebar isExpanded={isExpanded} setIsExpanded={setIsExpanded} />
       
       <main className={`flex-1 transition-all duration-300 p-8 lg:p-12 ${isExpanded ? 'ml-64' : 'ml-20'}`}>
         <header className="flex justify-between items-center mb-12">
           <div>
-            {/* Header: Slate text for a clean, ink-on-paper feel */}
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">Workspace</h1>
             <p className="text-slate-400 mt-2 font-medium">Welcome back, <span className={`${themeText} font-bold`}>{user?.name}</span></p>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Notification Bell: White surface with soft shadow */}
             <div className="relative">
               <button 
                 onClick={() => setShowNotif(!showNotif)}
@@ -79,7 +84,7 @@ const Dashboard = () => {
                     <h3 className="text-slate-400 font-black text-[10px] mb-4 uppercase tracking-widest">Alerts</h3>
                     <div className="space-y-3">
                       {displayTasks.filter(t => t.status === 'Pending').slice(-3).map(t => (
-                        <div key={t.id} className="text-xs text-slate-600 border-b border-rose-50 pb-2">
+                        <div key={t._id} className="text-xs text-slate-600 border-b border-rose-50 pb-2">
                           New assignment: <span className="text-rose-500 font-bold">"{t.title}"</span>
                         </div>
                       ))}
@@ -100,7 +105,6 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Stats Grid: Bright pastel containers */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
           <div className="bg-amber-50 border border-amber-100 p-8 rounded-[2.5rem] shadow-sm">
             <Clock className="text-amber-500 w-6 h-6 mb-4" />
@@ -119,11 +123,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Task Feed: Pure white cards with soft elevation */}
         <div className="space-y-5">
           <h2 className="text-slate-800 text-xl font-black mb-6 tracking-tight">Current Assignments</h2>
           {activeTasks.length > 0 ? activeTasks.slice(-5).reverse().map((task) => (
-            <div key={task.id} className="flex items-center justify-between p-8 bg-white border border-slate-100 rounded-[2.5rem] group hover:shadow-xl hover:shadow-rose-200/10 transition-all">
+            <div key={task._id} className="flex items-center justify-between p-8 bg-white border border-slate-100 rounded-[2.5rem] group hover:shadow-xl hover:shadow-rose-200/10 transition-all">
               <div className="flex items-center gap-6">
                 <div className={`w-3 h-3 rounded-full ${task.priority === 'High' ? 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.4)]' : 'bg-emerald-400'}`} />
                 <div>
@@ -133,10 +136,10 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center gap-4">
                 {task.status === 'Pending' && user?.role === 'Member' && (
-                  <button onClick={() => handleUpdateStatus(task.id, 'Accepted')} className="bg-teal-50 text-teal-600 border border-teal-100 px-6 py-2 rounded-xl text-xs font-black hover:bg-teal-500 hover:text-white transition-all">Accept</button>
+                  <button onClick={() => handleUpdateStatus(task._id, 'Accepted')} className="bg-teal-50 text-teal-600 border border-teal-100 px-6 py-2 rounded-xl text-xs font-black hover:bg-teal-500 hover:text-white transition-all">Accept</button>
                 )}
                 {task.status === 'Accepted' && (
-                  <button onClick={() => handleUpdateStatus(task.id, 'Completed')} className={`${themeBtn} text-white px-6 py-2 rounded-xl text-xs font-black transition-all`}>Complete</button>
+                  <button onClick={() => handleUpdateStatus(task._id, 'Completed')} className={`${themeBtn} text-white px-6 py-2 rounded-xl text-xs font-black transition-all`}>Complete</button>
                 )}
                 <span className="text-[10px] font-black px-4 py-2 rounded-xl bg-slate-50 text-slate-400 uppercase tracking-widest border border-slate-100 font-mono">{task.status}</span>
               </div>
@@ -146,7 +149,7 @@ const Dashboard = () => {
             </div>}
         </div>
       </main>
-      <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onTaskAdded={fetchTasks} userId={user?.id} />
+      <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onTaskAdded={fetchTasks} userId={currentUserId} />
     </div>
   );
 };
