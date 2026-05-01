@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -12,7 +13,7 @@ const Settings = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
-    const res = await fetch(`http://localhost:5001/api/users/${user.id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/users/${user._id || user.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, role }),

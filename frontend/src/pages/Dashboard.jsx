@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -18,7 +19,7 @@ const Dashboard = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/tasks');
+      const response = await fetch(`${API_BASE_URL}/api/tasks`);
       const data = await response.json();
       setTasks(data ?? []);
     } catch (e) { console.error(e); }
@@ -27,7 +28,7 @@ const Dashboard = () => {
   useEffect(() => { fetchTasks(); }, []);
 
   const handleUpdateStatus = async (taskId, newStatus) => {
-    const res = await fetch(`http://localhost:5001/api/tasks/${taskId}/status`, {
+    const res = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/status`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: newStatus, userId: currentUserId }),

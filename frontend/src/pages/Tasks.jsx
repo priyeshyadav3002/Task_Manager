@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import Sidebar from '../components/Sidebar';
@@ -13,7 +14,7 @@ const Tasks = () => {
     const userId = user?._id || user?.id; 
 
     if (userId) {
-      fetch('http://localhost:5001/api/tasks')
+      fetch(`${API_BASE_URL}/api/tasks`)
         .then(res => res.json())
         .then(data => {
           // CLOUD LOGIC: Handle populated objects in the filter

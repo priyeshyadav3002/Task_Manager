@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { API_BASE_URL } from '../config';import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { User, Mail, Lock, ShieldCheck, UserPlus, ArrowRight } from 'lucide-react';
@@ -39,7 +40,7 @@ const Signup = () => {
 
     const toastId = toast.loading('Creating your workspace...');
     try {
-      const response = await fetch('http://localhost:5001/api/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password, role }),

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -14,7 +15,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetch('http://localhost:5001/api/users')
+      fetch(`${API_BASE_URL}/api/tasks`)
         .then(res => res.json())
         .then(data => setUsers(data ?? []));
     }
@@ -45,7 +46,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded, userId }) => {
     };
 
     try {
-      const res = await fetch('http://localhost:5001/api/tasks', {
+      const res = await fetch(`${API_BASE_URL}/api/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

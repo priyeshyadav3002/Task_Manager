@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '../config';
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { motion } from 'framer-motion';
@@ -9,7 +10,7 @@ const Team = () => {
 
   useEffect(() => {
     // Fetches live users from the MongoDB-connected backend
-    fetch('http://localhost:5001/api/users')
+    fetch(`${API_BASE_URL}/api/users`)
       .then(res => res.json())
       .then(data => setMembers(data ?? []));
   }, []);
