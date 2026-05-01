@@ -1,3 +1,7 @@
+<img width="1533" height="914" alt="Screenshot 2026-05-01 at 10 57 13 AM" src="https://github.com/user-attachments/assets/4cf1c443-17c7-4ac5-b8fd-54a6adeb88e9" />
+<img width="1536" height="917" alt="Screenshot 2026-05-01 at 10 56 39 AM" src="https://github.com/user-attachments/assets/64a650af-b1c2-4397-ba64-b85384452274" />
+<img width="1536" height="960" alt="Screenshot 2026-05-01 at 10 12 53 AM" src="https://github.com/user-attachments/assets/de822963-0f90-404f-8b45-3fc45cf0f4fc" />
+<img width="1531" height="914" alt="Screenshot 2026-05-01 at 10 56 16 AM" src="https://github.com/user-attachments/assets/371c98f4-9b3e-4f04-a0f2-64311dc1e113" />
 🚀 Human Pattern Workspace (TaskQuest)
 A professional, full-stack Task Management System designed for high-performance teams. This application allows Project Managers (Admins) to assign tasks, set priorities, and track progress in real-time, while providing Members with a streamlined interface to manage their daily contributions.
 
