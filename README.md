@@ -9,6 +9,14 @@ Frontend: https://task-manager-five-delta-94.vercel.app/team
 
 
 Backend API: https://task-manager-bk86.onrender.com
+⚠️ Note on Cold Starts
+This project is hosted on Render's Free Tier.
+
+Idle Sleep: The backend service automatically "spins down" after 15 minutes of inactivity.
+
+Wake-up Time: If you encounter a "Network Error" or a slow response on your first login attempt, please wait 60 seconds for the server to wake up and then refresh the page.
+
+Stability: Once the initial connection is established, the application will perform at normal speeds for the remainder of your session.
 
 📸 Project Preview
 
